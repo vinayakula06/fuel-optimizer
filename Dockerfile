@@ -22,3 +22,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy project files
 COPY . /app/
+
+CMD ["sh", "-c", "python manage.py migrate && python manage.py load_fuel_data --file ./data/fuel-prices.csv && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"]
+
