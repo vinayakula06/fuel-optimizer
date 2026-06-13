@@ -100,8 +100,8 @@ class Command(BaseCommand):
         ))
 
         # 2. Set up Offline Geocoder Cache
-        # Download us_cities.csv locally if not present to avoid rate limits
-        local_cities_path = "us_cities.csv"
+        # Download us_cities.csv to data/ directory if not present to avoid rate limits
+        local_cities_path = os.path.join("data", "us_cities.csv")
         if not os.path.exists(local_cities_path):
             self.stdout.write("Downloading offline cities database for high-speed geocoding...")
             try:
