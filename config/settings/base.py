@@ -9,11 +9,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-SECRET_KEY = env.str('SECRET_KEY', default='django-insecure-fuel-optimizer-secret-key-12345')
+SECRET_KEY = env.str('SECRET_KEY')
 
 DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 # Application definition
 INSTALLED_APPS = [
@@ -70,7 +70,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # PostGIS backend is required for ST_DWithin and other spatial queries
 DB_USER = env.str('DB_USER', default='postgres')
-DB_PASSWORD = env.str('DB_PASSWORD', default='password123')
+DB_PASSWORD = env.str('DB_PASSWORD')
 DB_HOST = env.str('DB_HOST', default='localhost')
 DB_PORT = env.str('DB_PORT', default='5432')
 DB_NAME = env.str('DB_NAME', default='fuel_optimizer')
@@ -109,7 +109,7 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -144,4 +144,4 @@ OSRM_TIMEOUT_SECONDS = env.int('OSRM_TIMEOUT_SECONDS', default=5)
 FUEL_SEARCH_RADIUS_MILES = env.int('FUEL_SEARCH_RADIUS_MILES', default=25)
 CACHE_TTL_ROUTE_SECONDS = env.int('CACHE_TTL_ROUTE_SECONDS', default=86400) # 24h
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=DEBUG)
