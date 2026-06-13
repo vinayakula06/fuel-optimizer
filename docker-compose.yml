@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: fuel_optimizer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fuel_optimizer"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6389:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py load_fuel_data --file /data/fuel-prices.csv &&
+             python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8001:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=fuel_optimizer
+      - DB_USER=postgres
+      - DB_PASSWORD=password123
+      - REDIS_URL=redis://redis:6379/0
+      - OSRM_BASE_URL=https://router.project-osrm.org
+      - FUEL_SEARCH_RADIUS_MILES=25
+    volumes:
+      - .:/app
+      - ./data:/data:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
