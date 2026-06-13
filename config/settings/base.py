@@ -70,21 +70,28 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # PostGIS backend is required for ST_DWithin and other spatial queries
 DB_USER = env.str('DB_USER', default='postgres')
-DB_PASSWORD = env.str('DB_PASSWORD')
+DB_PASSWORD = env.str('DB_PASSWORD', default=None)
 DB_HOST = env.str('DB_HOST', default='localhost')
 DB_PORT = env.str('DB_PORT', default='5432')
 DB_NAME = env.str('DB_NAME', default='fuel_optimizer')
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': DB_NAME,
-        'USER': DB_USER,
-        'PASSWORD': DB_PASSWORD,
-        'HOST': DB_HOST,
-        'PORT': DB_PORT,
+if env.str('DATABASE_URL', default=''):
+    DATABASES = {
+        'default': env.db('DATABASE_URL', engine='django.contrib.gis.db.backends.postgis')
     }
-}
+else:
+    if not DB_PASSWORD:
+        raise ValueError("DB_PASSWORD environment variable is required when DATABASE_URL is not set.")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'NAME': DB_NAME,
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+            'HOST': DB_HOST,
+            'PORT': DB_PORT,
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
