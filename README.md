@@ -236,8 +236,7 @@ curl -X POST "https://web-production-7b2d7.up.railway.app/api/v1/route/" \
 │   ├── fuel-prices.csv # Ingest CSV containing fuel station prices
 │   └── us_cities.csv   # Local geocoding fallback cities database
 ├── scripts/
-│   ├── benchmark.py    # Profiling and latency evaluation utility
-│   └── diagnose_stops.py # Diagnostics and debugging stop parameters
+│   └── benchmark.py    # Profiling and latency evaluation utility
 ├── Dockerfile          # Multi-stage production container setup
 ├── docker-compose.yml  # Local multi-container orchestration config
 ├── manage.py           # Django task script
