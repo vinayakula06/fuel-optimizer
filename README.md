@@ -1,31 +1,61 @@
-# 🚀 Fuel Route Optimizer & Spatial Query Service
+# 🚀 Fuel Route Optimizer
 
-An elite, mathematically optimal refueling stop planner for long-distance road trips across the United States. Deployed with a high-performance spatial querying pipeline, offline fallback systems, and a dynamic Leaflet.js map visualization interface.
+**Spotter Lab Assignment Solution** — A production-grade Django API that finds cost-optimal refueling stops on long US road trips.
 
-### 🌐 Live Production Deployment
-* **Live Interactive Map UI**: [https://web-production-7b2d7.up.railway.app/api/v1/map/](https://web-production-7b2d7.up.railway.app/api/v1/map/) *(Directly search and compute routes in your browser!)*
-* **Pre-cached Route (Chicago ➔ LA)**: [https://web-production-7b2d7.up.railway.app/api/v1/map/?cache_key=d9a1143084defa83fd3914df99622ab4a9e0ef76577ed61d5fce17a35611d139](https://web-production-7b2d7.up.railway.app/api/v1/map/?cache_key=d9a1143084defa83fd3914df99622ab4a9e0ef76577ed61d5fce17a35611d139)
-* **Live Health Check API**: [https://web-production-7b2d7.up.railway.app/api/v1/health/](https://web-production-7b2d7.up.railway.app/api/v1/health/)
-* **Interactive Swagger UI Docs**: [https://web-production-7b2d7.up.railway.app/api/docs/swagger/](https://web-production-7b2d7.up.railway.app/api/docs/swagger/)
+- **Vehicle Assumptions**: 500-mile tank range, 10 MPG
+- **Optimization**: Dynamic Programming (cost minimization with partial fills)
+- **Routing**: OSRM (1 call per route via heavy caching)
+
+### 🌐 Live Links
+- **Interactive Map UI**: [https://web-production-7b2d7.up.railway.app/api/v1/map/](https://web-production-7b2d7.up.railway.app/api/v1/map/)
+- **Pre-cached Chicago → LA**: [Direct Link](https://web-production-7b2d7.up.railway.app/api/v1/map/?cache_key=d9a1143084defa83fd3914df99622ab4a9e0ef76577ed61d5fce17a35611d139)
+- **Swagger API Docs**: [https://web-production-7b2d7.up.railway.app/api/docs/swagger/](https://web-production-7b2d7.up.railway.app/api/docs/swagger/)
+- **Loom Demo**: [https://www.loom.com/share/e1519d02b7ed46c1bfc5e6497b229745](https://www.loom.com/share/e1519d02b7ed46c1bfc5e6497b229745)
 
 ---
 
-## 🏆 Elite Algorithmic & Systems Architecture
+### Screenshots / Demo
 
-This service is engineered to bypass naive greedy heuristics and heavy external API rates, delivering industry-standard algorithmic efficiency and performance profiles:
+![Interactive Map UI](assets/map_screenshot.png)
+*Interactive Map UI showing optimized refueling stops and route path.*
 
-### 1. Mathematical Optimization Engine
-* **O(N·K) Early-Exit Dynamic Programming**: The optimization engine models refueling as a state-based DP graph where states are parameterized by the current station $N$ and arrival fuel state $K$. By restricting searches to reachable successor stations within the vehicle's maximum range $R$ (500 miles), the search space is bounded, allowing the engine to solve for absolute minimal fuel cost in **P95 < 7ms**.
-* **Tank-State-Aware Partial Fills**: Rather than assuming full refuels at every stop, the algorithm determines the exact fraction of gallons to buy at cheap stations to reach the next cheapest destination, merging micro-purchases into cheaper predecessor stops.
+![Swagger API Docs](assets/swagger_screenshot.png)
+*Swagger API documentation displaying endpoint specifications.*
 
-### 2. High-Speed Spatial Lookup Pipeline
-* **PostGIS Corridor Search**: Uses indexing (`gist` on location `Point`) to execute an indexed corridor query (`ST_DWithin`) locating gas stations within 25 miles of the route polyline.
-* **cKDTree Projection**: Projects 8,000+ national gas stations onto the complex OSRM polyline using SciPy `cKDTree` and Haversine geometry calculation in **~18ms**.
+**Chicago → LA Example**: $216 savings (31%) vs naive baseline.
 
-### 3. Latency Mitigation & Offline Fallbacks
-* **Parallel Geocoding**: Resolves origin and destination locations concurrently using a thread pool executor, cutting geocoding API network latency by 50%.
-* **Offline Cities Database**: Links a local SQLite/CSV cache of ~30,000 US cities, resolving 99%+ of geocoding lookups offline in **<1ms** without hitting external API rate limits.
-* **Redis Cache Layer**: Caches OSRM route geometry and computed optimizations, achieving a warm response latency of **~5ms locally / ~38ms in production**.
+---
+
+## Architecture Overview
+
+```mermaid
+graph TD
+    Client[User / Map UI] --> Django[Django REST API]
+    Django --> Redis[Redis Cache]
+    Django --> Geocoder[Geocoder + Offline Fallback]
+    Django --> OSRM[OSRM Routing]
+    Django --> PostGIS[PostGIS Station Query]
+    PostGIS --> Optimizer[Dynamic Programming Optimizer]
+    Optimizer --> Response[Optimal Stops + Total Cost]
+```
+
+Key Components:
+- Dynamic Programming engine with O(N·K) early-exit and tank-state partial fills
+- PostGIS + cKDTree spatial pipeline
+- Redis + DB caching for minimal external calls
+
+---
+
+## 🎯 Spotter Lab Assignment Compliance
+
+- ✅ Latest Django + REST Framework
+- ✅ Start + Destination input (USA)
+- ✅ Cost-optimal fuel stops (500-mile range, multiple stops supported)
+- ✅ Used **exact fuel-prices.csv** provided (loaded via `manage.py load_fuel_data`)
+- ✅ Total fuel cost at 10 MPG + savings vs naive
+- ✅ Minimal routing calls (1 OSRM call via caching)
+- ✅ Fast responses + production deployment (Docker, Railway)
+- ✅ Interactive map + Swagger docs
 
 ---
 
@@ -266,3 +296,10 @@ docker compose exec web pytest -v
 docker compose exec web pytest --cov=apps --cov-report=term-missing -v
 ```
 All **49 unit tests** pass successfully, validating edge-cases (short trips, range bounds, unreachable locations, local minima).
+
+---
+
+## 🔒 Data Privacy
+
+The `fuel-prices.csv` provided by Spotter Lab is **not committed** to the repository. It is loaded via Django management command on startup. Public fallback data (`us_cities.csv`) is included.
+
