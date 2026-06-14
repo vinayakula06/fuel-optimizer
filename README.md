@@ -127,6 +127,43 @@ On the Chicago ➔ Los Angeles route, this optimization algorithm yields **$216.
 
 ---
 
+## 📞 External API Call Optimization & Logging
+
+To minimize third-party query charges and latency, the backend restricts geocoding and routing queries to a maximum of **three external API calls per fresh request**:
+1. Geocode origin location.
+2. Geocode destination location.
+3. Fetch route path from OSRM.
+
+Subsequent requests for the same route and parameters result in **zero external calls** by serving geocodes and routes directly from PostgreSQL (`RouteCache`).
+
+### Verifying Request Logs via Shell
+After performing a route query, you can verify the external call count and caching flags by running:
+
+```bash
+docker compose exec web python manage.py shell -c "
+from routes.models import RouteRequestLog
+log = RouteRequestLog.objects.order_by('-id').values(
+    'start_location', 'finish_location', 'external_api_call_count', 'was_route_cached', 'response_time_ms'
+).first()
+print(log)
+"
+```
+
+* **Fresh Request**: `external_api_call_count` is `1`, `2`, or `3`, and `was_route_cached` is `False`.
+* **Repeated/Cached Request**: `external_api_call_count` is `0`, and `was_route_cached` is `True`.
+
+### Verifying Route Cache Presence
+To check if a specific route (e.g., Chicago to Dallas) is cached in the DB:
+
+```bash
+docker compose exec web python manage.py shell -c "
+from routes.models import RouteCache
+print(RouteCache.objects.filter(start_location='Chicago, IL', finish_location='Dallas, TX').exists())
+"
+```
+
+---
+
 ## 🛡️ Resilience & Failure Modes
 
 1. **OSRM Routing Downtime**: If the routing service fails, the API gracefully catches the exception, logging it, and returning a `503 Service Unavailable` with a descriptive message.
@@ -235,6 +272,7 @@ curl -X POST "https://web-production-7b2d7.up.railway.app/api/v1/route/" \
 ├── data/
 │   ├── fuel-prices.csv # Ingest CSV containing fuel station prices
 │   └── us_cities.csv   # Local geocoding fallback cities database
+├── routes/             # Route caching & request logging models
 ├── scripts/
 │   └── benchmark.py    # Profiling and latency evaluation utility
 ├── Dockerfile          # Multi-stage production container setup
