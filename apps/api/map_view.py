@@ -25,7 +25,7 @@ class RouteMapView(View):
         meta = {}
 
         if cache_key:
-            from apps.stations.models import RouteCache
+            from routes.models import RouteCache
             route_cache = RouteCache.objects.filter(cache_key=cache_key).first()
             if route_cache:
                 data = route_cache.response_json

@@ -2,6 +2,7 @@ import logging
 import httpx
 from django.core.cache import cache
 from django.conf import settings
+from apps.routing.geocoder import increment_api_call_count
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,7 @@ class OSRMClient:
         
         # Retry logic: retry once with 500 ms back-off
         retries = 2
+        increment_api_call_count()
         for attempt in range(retries):
             try:
                 response = httpx.get(

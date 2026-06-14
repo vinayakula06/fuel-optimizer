@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'apps.routing',
     'apps.optimizer',
     'apps.api',
+    'routes',
 ]
 
 MIDDLEWARE = [

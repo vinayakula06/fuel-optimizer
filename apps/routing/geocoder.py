@@ -1,9 +1,23 @@
 import logging
 import httpx
+import threading
 from django.core.cache import cache
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+_api_call_context = threading.local()
+
+def reset_api_call_count():
+    _api_call_context.count = 0
+
+def increment_api_call_count():
+    if not hasattr(_api_call_context, 'count'):
+        _api_call_context.count = 0
+    _api_call_context.count += 1
+
+def get_api_call_count():
+    return getattr(_api_call_context, 'count', 0)
 
 
 class NominatimGeocoder:
@@ -43,6 +57,7 @@ class NominatimGeocoder:
         }
         
         try:
+            increment_api_call_count()
             response = httpx.get(cls.BASE_URL, params=params, headers=headers, timeout=5.0)
             if response.status_code == 200:
                 data = response.json()

@@ -19,9 +19,10 @@ from apps.api.serializers import (
     RouteOptimizationRequestSerializer,
     RouteOptimizationResponseSerializer
 )
-from apps.routing.geocoder import NominatimGeocoder
+from apps.routing.geocoder import NominatimGeocoder, reset_api_call_count, get_api_call_count
 from apps.routing.client import OSRMClient
-from apps.stations.models import FuelStation, RouteCache
+from apps.stations.models import FuelStation
+from routes.models import RouteCache, RouteRequestLog
 from apps.stations.services import StationQueryService
 from apps.optimizer.spatial import project_stations_to_route
 from apps.optimizer.engine import find_optimal_fuel_stops
@@ -49,6 +50,7 @@ class RouteOptimizationView(APIView):
     
     def post(self, request, *args, **kwargs):
         t0 = time.perf_counter()
+        reset_api_call_count()
         timings = {}
         
         # 1. Validate Input Request
@@ -100,6 +102,18 @@ class RouteOptimizationView(APIView):
             cache_hit_ms = round((time.perf_counter() - t0) * 1000, 1)
             resp_json["meta"]["computed_in_ms"] = cache_hit_ms
             resp_json["meta"]["timing_breakdown"] = {"cache_hit_ms": cache_hit_ms}
+            
+            try:
+                RouteRequestLog.objects.create(
+                    start_location=start_label,
+                    finish_location=destination_label,
+                    external_api_call_count=0,
+                    was_route_cached=True,
+                    response_time_ms=cache_hit_ms
+                )
+            except Exception as e:
+                logger.warning(f"Failed to create request log: {e}")
+                
             return Response(resp_json, status=status.HTTP_200_OK)
             
         # 3. Geocode Locations — run start + destination IN PARALLEL
@@ -313,8 +327,8 @@ class RouteOptimizationView(APIView):
         try:
             RouteCache.objects.create(
                 cache_key=cache_key,
-                start_label=start_label,
-                end_label=destination_label,
+                start_location=start_label,
+                finish_location=destination_label,
                 total_miles=total_distance_miles,
                 total_cost=total_cost,
                 stop_count=len(stop_results),
@@ -322,6 +336,18 @@ class RouteOptimizationView(APIView):
             )
         except Exception as e:
             logger.warning(f"Failed to save route to database cache: {e}")
+            
+        # Log this request to RouteRequestLog
+        try:
+            RouteRequestLog.objects.create(
+                start_location=start_label,
+                finish_location=destination_label,
+                external_api_call_count=get_api_call_count(),
+                was_route_cached=False,
+                response_time_ms=timings["total_ms"]
+            )
+        except Exception as e:
+            logger.warning(f"Failed to create request log: {e}")
             
         return Response(response_data, status=status.HTTP_200_OK)
 

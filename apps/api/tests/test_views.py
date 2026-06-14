@@ -3,7 +3,8 @@ from django.urls import reverse
 from django.contrib.gis.geos import Point
 from rest_framework import status
 from rest_framework.test import APITestCase
-from apps.stations.models import FuelStation, RouteCache
+from apps.stations.models import FuelStation
+from routes.models import RouteCache
 
 class APITests(APITestCase):
 
