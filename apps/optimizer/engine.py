@@ -72,9 +72,9 @@ def optimize_fuel_stops(
             else:
                 price_j = float(route[j]['retail_price'])
                 # Estimate cost: buy just enough to reach i plus a 30-mile buffer
-                # (conservative estimate; Phase 2 will refine actual quantities)
+                # Add a $10.00 stop penalty to avoid routes with too many micro-stops
                 gallons_est = min(tank_range, dist + 30.0) / mpg
-                cost = gallons_est * price_j
+                cost = (gallons_est * price_j) + 10.0
 
             total = dp[j] + cost
             if total < dp[i]:
@@ -157,12 +157,17 @@ def optimize_fuel_stops(
         if price_here <= min_price_ahead:
             # Cheapest (or tied) reachable ahead — fill to physical tank limit
             gallons = space_in_tank_gal
-        elif next_is_destination or dist_to_next > tank_range - 30.0:
-            # Must fill fully to safely reach next stop / destination
+            if next_is_destination:
+                gallons_needed = (dist_to_next + 30.0) / mpg - (range_on_arrival / mpg)
+                gallons = min(gallons, max(gallons_needed, 0.0))
+        elif next_is_destination:
+            # Buy only what is needed to reach the destination + 30-mile safety buffer
+            gallons_needed = (dist_to_next + 30.0) / mpg - (range_on_arrival / mpg)
+            gallons = min(max(gallons_needed, 0.0), space_in_tank_gal)
+        elif dist_to_next > tank_range - 30.0:
+            # Must fill fully to safely reach next stop
             gallons = space_in_tank_gal
         else:
-            # Buy just enough to reach next stop + 30-mile buffer,
-            # but only what the tank can accept
             gallons_needed = (dist_to_next + 30.0) / mpg - (range_on_arrival / mpg)
             gallons = min(max(gallons_needed, 0.0), space_in_tank_gal)
 
