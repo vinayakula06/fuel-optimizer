@@ -90,8 +90,8 @@ We formulate the routing path selection as a single-source shortest path problem
 
 Let:
 * $dp[i]$ be the absolute minimum cost to reach station $i$ with a safe fuel buffer.
-* $c(j, i)$ be the transition cost of traveling from station $j$ to station $i$. Since the vehicle starts full, no purchase occurs at the origin ($j=0 \implies c(0, i) = 0$). For subsequent nodes ($j > 0$), we estimate the cost to buy just enough fuel to cover the distance plus a 30-mile safety buffer:
-$$c(j, i) = \text{price}_j \times \frac{\min(R, (d_i - d_j) + 30.0)}{\text{mpg}}$$
+* $c(j, i)$ be the transition cost of traveling from station $j$ to station $i$. Since the vehicle starts full, no purchase occurs at the origin ($j=0 \implies c(0, i) = 0$). For subsequent nodes ($j > 0$), we estimate the cost to buy just enough fuel to cover the distance plus a 30-mile safety buffer, plus a $10.00 stop penalty to discourage redundant micro-stops:
+$$c(j, i) = \left( \text{price}_j \times \frac{\min(R, (d_i - d_j) + 30.0)}{\text{mpg}} \right) + 10.00$$
 
 The dynamic programming state recurrence is:
 $$dp[i] = \min_{j < i, \, (d_i - d_j) \le R} \{ dp[j] + c(j, i) \}$$
