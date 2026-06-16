@@ -1062,7 +1062,7 @@ class RouteMapView(View):
       renderResults(metaToUse, initStops);
     } else {
       // Pre-fill fields for standard route demo
-      document.getElementById('start').value = "Chicago, IL";
+      document.getElementById('start').value = "Washington, DC";
       document.getElementById('destination').value = "Los Angeles, CA";
     }
   </script>
