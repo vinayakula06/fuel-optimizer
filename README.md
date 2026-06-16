@@ -8,7 +8,7 @@
 
 ### 🌐 Live Links
 - **Interactive Map UI**: [https://web-production-7b2d7.up.railway.app/api/v1/map/](https://web-production-7b2d7.up.railway.app/api/v1/map/)
-- **Pre-cached Chicago → LA**: [Direct Link](https://web-production-7b2d7.up.railway.app/api/v1/map/?cache_key=d9a1143084defa83fd3914df99622ab4a9e0ef76577ed61d5fce17a35611d139)
+- **Pre-cached Washington, DC → LA**: [Direct Link](https://web-production-7b2d7.up.railway.app/api/v1/map/?cache_key=79c7aa04d047bd4bd99a80c01f21b8ae252a50d20f752f4170400784041092a1)
 - **Swagger API Docs**: [https://web-production-7b2d7.up.railway.app/api/docs/swagger/](https://web-production-7b2d7.up.railway.app/api/docs/swagger/)
 - **Loom Demo**: [https://www.loom.com/share/e1519d02b7ed46c1bfc5e6497b229745](https://www.loom.com/share/e1519d02b7ed46c1bfc5e6497b229745)
 
@@ -22,7 +22,7 @@
 ![Swagger API Docs](assets/swagger_screenshot.png)
 *Swagger API documentation displaying endpoint specifications.*
 
-**Chicago → LA Example**: $216 savings (31%) vs naive baseline.
+**Washington, DC → LA Example**: $224 savings (25.4%) vs naive baseline.
 
 ---
 
@@ -123,7 +123,7 @@ $$C_{naive} = \text{Average Price of All Corridor Stations} \times \frac{\text{T
 $$\text{Savings (USD)} = C_{naive} - C_{optimal}$$
 $$\text{Savings (\%)} = \frac{C_{naive} - C_{optimal}}{C_{naive}} \times 100$$
 
-On the Chicago ➔ Los Angeles route, this optimization algorithm yields **$216.34 (31.4%) savings** by planning stops at regions with lower relative fuel prices.
+On the Washington, DC ➔ Los Angeles route, this optimization algorithm yields **$224.74 (25.4%) savings** by planning stops at regions with lower relative fuel prices.
 
 ---
 
@@ -192,12 +192,12 @@ curl -X GET "https://web-production-7b2d7.up.railway.app/api/v1/health/"
 ```
 
 ### 2. POST Route Optimization Request
-Calculate fuel stops for a route from Chicago to LA:
+Calculate fuel stops for a route from Washington, DC to LA:
 ```bash
 curl -X POST "https://web-production-7b2d7.up.railway.app/api/v1/route/" \
      -H "Content-Type: application/json" \
      -d '{
-           "start": "Chicago, IL",
+           "start": "Washington, DC",
            "destination": "Los Angeles, CA",
            "tank_size_miles": 500,
            "mpg": 10
@@ -207,21 +207,21 @@ curl -X POST "https://web-production-7b2d7.up.railway.app/api/v1/route/" \
 ```json
 {
     "meta": {
-        "start": "Chicago, IL",
+        "start": "Washington, DC",
         "destination": "Los Angeles, CA",
-        "total_distance_miles": 2018.14,
-        "total_fuel_gallons": 201.81,
-        "total_fuel_cost_usd": "473.23",
-        "naive_cost_usd": "689.57",
-        "savings_usd": "216.34",
-        "savings_pct": 31.4,
-        "stop_count": 4,
+        "total_distance_miles": 2672.51,
+        "total_fuel_gallons": 267.25,
+        "total_fuel_cost_usd": "661.52",
+        "naive_cost_usd": "886.26",
+        "savings_usd": "224.74",
+        "savings_pct": 25.4,
+        "stop_count": 5,
         "assumed_tank_full_at_start": true,
         "routing_api_calls": 1,
         "algorithm": "DP optimal — O(N·K) early-exit, parallel geocoding, tank-state-aware partial-fill",
-        "computed_in_ms": 38.6,
+        "computed_in_ms": 77.4,
         "timing_breakdown": {
-            "cache_hit_ms": 38.6
+            "cache_hit_ms": 77.4
         }
     },
     "stops": [
@@ -247,12 +247,12 @@ curl -X POST "https://web-production-7b2d7.up.railway.app/api/v1/route/" \
             "geometry": {
                 "type": "LineString",
                 "coordinates": [
-                    [-87.624351, 41.875563],
+                    [-77.03637, 38.89511],
                     [-118.2423, 34.053398]
                 ]
             }
         },
-        "map_url": "https://web-production-7b2d7.up.railway.app/api/v1/map/?cache_key=d9a1143084defa83fd3914df99622ab4a9e0ef76577ed61d5fce17a35611d139"
+        "map_url": "https://web-production-7b2d7.up.railway.app/api/v1/map/?cache_key=79c7aa04d047bd4bd99a80c01f21b8ae252a50d20f752f4170400784041092a1"
     }
 }
 ```
